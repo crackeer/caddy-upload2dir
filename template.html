@@ -368,8 +368,7 @@
                 <span class="meta-item">(of which only <b>{{.Limit}}</b> are displayed)</span>
                 {{- end}}
                 <span class="meta-item"><input type="text" placeholder="filter" id="filter" onkeyup='filter()'></span>
-                <span class="meta-item"><input type="file" value="上传文件到该项目下" multiple name="files" /></span>
-                <span class="meta-item"><button >开始上传</button></span>
+                <span class="meta-item"><input type="file" value="上传文件到该项目下" multiple name="files" id="uploader"/></span>
             </div>
         </div>
         <div class="listing">
@@ -536,6 +535,27 @@
                 }
             });
         }
+        const fileUploader = document.getElementById('uploader');
+
+        fileUploader.addEventListener('change', (event) => {
+            const files = event.target.files;
+            const formData = new FormData()
+            for (const file of files) {
+                formData.append('files', file)
+            }
+            var url = window.location.href
+            fetch(url, {
+                method : 'POST',
+                body : formData,
+                headers : {
+                    'Content-Type':'multipart/form-data'
+                }
+            }).then((response) => {
+                console.log(response)
+            }).catch((error) => {
+                console.log(error)
+            })
+        });
 
         function localizeDatetime(e, index, ar) {
             if (e.textContent === undefined) {

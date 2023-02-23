@@ -58,12 +58,24 @@
                             "terminal": true
                         },
                         {
+                            "match" : [
+                                {
+                                    "method" : ["POST"]
+                                }
+                            ],
+                            "handle" : [
+                                {
+                                    "handler" : "upload2dir"
+                                }
+                            ]
+                        },
+                        {
                             "handle": [
                                 {
                                     "handler": "file_server",
                                     "root": "/Users/liuhu016",
                                     "browse": {
-                                        "template_file": "/Users/liuhu016/caddy/template.html"
+                                        "template_file": "/Users/liuhu016/github/caddy-upload2dir/template.html"
                                     }
                                 }
                             ]
