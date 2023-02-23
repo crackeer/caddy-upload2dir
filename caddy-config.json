@@ -1,0 +1,76 @@
+{
+    "admin": {
+        "disabled": false,
+        "listen": "0.0.0.0:2019",
+        "enforce_origin": false,
+        "origins": [
+            ""
+        ]
+    },
+    "apps": {
+        "http": {
+            "servers": {
+                "static": {
+                    "idle_timeout": 30000000000,
+                    "listen": [
+                        "0.0.0.0:80"
+                    ],
+                    "max_header_bytes": 10240000,
+                    "read_header_timeout": 10000000000,
+                    "routes": [
+                        {
+                            "match": [
+                                {
+                                    "header": {
+                                        "proxy" : ["gateway"]
+                                    }
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "reverse_proxy",
+                                    "upstreams": [
+                                        {
+                                            "dial": "localhost:9000"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "terminal": true
+                        },
+                        {
+                            "match": [
+                                {
+                                    "host": [
+                                        "i.blog.crackeer.com"
+                                    ]
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "file_server",
+                                    "root": "/Users/liuhu016/github/crackeer.github.io",
+                                    "browse": {
+                                        "template_file": ""
+                                    }
+                                }
+                            ],
+                            "terminal": true
+                        },
+                        {
+                            "handle": [
+                                {
+                                    "handler": "file_server",
+                                    "root": "/Users/liuhu016",
+                                    "browse": {
+                                        "template_file": "/Users/liuhu016/caddy/template.html"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
