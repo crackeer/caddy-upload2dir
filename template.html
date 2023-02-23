@@ -10,6 +10,10 @@
             padding: 0;
             margin: 0;
         }
+        button{
+			text-align: center;/*字体居中*/
+			padding: 2px;
+		}
 
         body {
             font-family: sans-serif;
@@ -547,8 +551,15 @@
         fileUploader.addEventListener('change', async (event) => {
             const files = event.target.files;
             for (const file of files) {
-                let result = await doUploadFile(file)
-                console.log(result)
+                try {
+                    let result = await doUploadFile(file)
+                    if (result.status != 200) {
+                        alert(result.statusText)
+                    }
+
+                } catch (e) {
+                    alert(e.message)
+                }
             }
             window.location.reload()
         });
@@ -589,34 +600,32 @@
                 let result = await fetch(window.location.href + file, {
                     method: 'DELETE'
                 })
-                let data = await result.json()
-                if (data.code != 0) {
-                    alert(data.message)
+                if (result.status != 200) {
+                    alert(result.statusText)
                 } else {
                     window.location.reload()
                 }
             } catch (e) {
-                console.log(e)
+                alert(e.message)
             }
         }
 
         var createDir = async () => {
             let name = window.prompt("请输入文件夹名称", "")
-            if(name.trim().length < 1) {
+            if (name.trim().length < 1) {
                 return
             }
             try {
                 let result = await fetch(window.location.href + name.trim(), {
                     method: 'POST'
                 })
-                let data = await result.json()
-                if (data.code != 0) {
-                    alert(data.message)
+                if (result.status != 200) {
+                    alert(result.statusText)
                 } else {
                     window.location.reload()
                 }
             } catch (e) {
-                console.log(e)
+                alert(e.message)
             }
         }
     </script>
