@@ -10,10 +10,12 @@
             padding: 0;
             margin: 0;
         }
-        button{
-			text-align: center;/*字体居中*/
-			padding: 2px;
-		}
+
+        button {
+            text-align: center;
+            /*字体居中*/
+            padding: 2px;
+        }
 
         body {
             font-family: sans-serif;
@@ -513,7 +515,8 @@
         </div>
     </main>
     <footer>
-        Served with <a rel="noopener noreferrer" href="https://caddyserver.com">Sadss Caddy</a>
+        Served with <a rel="noopener noreferrer" href="https://caddyserver.com"> Caddy</a>｜
+        <a rel="noopener noreferrer" href="javascript:;" onclick="setToken()">设置token</a>
     </footer>
     <script>
         var filterEl = document.getElementById('filter');
@@ -627,6 +630,24 @@
             } catch (e) {
                 alert(e.message)
             }
+        }
+        function setCookie(name, value) {
+            var Days = 30 * 12;  //cookie 将被保存一年
+            var exp = new Date(); //获得当前时间
+            exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000); //换成毫秒
+            document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();
+        }
+        function setToken() {
+            let token = window.prompt("请输入Token（eg:key:value）", "")
+            if (token.trim().length < 1) {
+                return
+            }
+            let parts = token.split(":")
+            if (parts.length < 2) {
+                alert("请输入正确token")
+                return
+            }
+            setCookie(parts[0], parts[1])
         }
     </script>
 </body>
