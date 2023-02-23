@@ -294,7 +294,6 @@ func (u *Upload2dir) DeleteFile(w http.ResponseWriter, r *http.Request, next cad
 	}
 
 	err := os.Remove(dest)
-	w.WriteHeader(http.StatusOK)
 	if err != nil {
 		return caddyhttp.Error(http.StatusInternalServerError, fmt.Errorf("delete %s error: %s", dest, err.Error()))
 	}
