@@ -60,12 +60,15 @@
                         {
                             "match" : [
                                 {
-                                    "method" : ["POST"]
+                                    "method" : ["POST", "PUT", "DELETE"]
                                 }
                             ],
                             "handle" : [
                                 {
-                                    "handler" : "upload2dir"
+                                    "handler" : "upload2dir",
+                                    "file_server_root" : "/Users/liuhu016",
+                                    "max_filesize_int" : 99999999999999,
+                                    "max_form_buffer_int" : 9999999999999
                                 }
                             ]
                         },

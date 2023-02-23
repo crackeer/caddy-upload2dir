@@ -368,7 +368,8 @@
                 <span class="meta-item">(of which only <b>{{.Limit}}</b> are displayed)</span>
                 {{- end}}
                 <span class="meta-item"><input type="text" placeholder="filter" id="filter" onkeyup='filter()'></span>
-                <span class="meta-item"><input type="file" value="上传文件到该项目下" multiple name="files" id="uploader"/></span>
+                <span class="meta-item"><button onclick="createDir()">新建文件夹</button></span>
+                <span class="meta-item"><input type="file" placeholder="上传文件到该项目下" multiple id="uploader" /></span>
             </div>
         </div>
         <div class="listing">
@@ -454,6 +455,9 @@
                             {{- end}}
                         </th>
                         <th class="hideable"></th>
+                        <th class="hideable">
+                            操作
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -495,6 +499,9 @@
                         <td class="hideable"><time datetime="{{.HumanModTime " 2006-01-02T15:04:05Z"}}">{{.HumanModTime
                                 "01/02/2006 03:04:05 PM -07:00"}}</time></td>
                         <td class="hideable"></td>
+                        <td class="hideable">
+                            <button onclick="deleteFile('{{.Name}}')">删除</button>
+                        </td>
                     </tr>
                     {{- end}}
                 </tbody>
@@ -537,25 +544,25 @@
         }
         const fileUploader = document.getElementById('uploader');
 
-        fileUploader.addEventListener('change', (event) => {
+        fileUploader.addEventListener('change', async (event) => {
             const files = event.target.files;
-            const formData = new FormData()
             for (const file of files) {
-                formData.append('files', file)
+                let result = await doUploadFile(file)
+                console.log(result)
             }
-            var url = window.location.href
-            fetch(url, {
-                method : 'POST',
-                body : formData,
-                headers : {
-                    'Content-Type':'multipart/form-data'
-                }
-            }).then((response) => {
-                console.log(response)
-            }).catch((error) => {
-                console.log(error)
-            })
+            window.location.reload()
         });
+
+        async function doUploadFile(file) {
+            var url = window.location.href + file.name
+            const formData = new FormData()
+            formData.append('file', file)
+            return await fetch(url, {
+                method: 'PUT',
+                body: formData
+            })
+        }
+
 
         function localizeDatetime(e, index, ar) {
             if (e.textContent === undefined) {
@@ -572,6 +579,46 @@
         }
         var timeList = Array.prototype.slice.call(document.getElementsByTagName("time"));
         timeList.forEach(localizeDatetime);
+
+        var deleteFile = async (file) => {
+            let yes = window.confirm("确认删除该文件")
+            if (!yes) {
+                return
+            }
+            try {
+                let result = await fetch(window.location.href + file, {
+                    method: 'DELETE'
+                })
+                let data = await result.json()
+                if (data.code != 0) {
+                    alert(data.message)
+                } else {
+                    window.location.reload()
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        var createDir = async () => {
+            let name = window.prompt("请输入文件夹名称", "")
+            if(name.trim().length < 1) {
+                return
+            }
+            try {
+                let result = await fetch(window.location.href + name.trim(), {
+                    method: 'POST'
+                })
+                let data = await result.json()
+                if (data.code != 0) {
+                    alert(data.message)
+                } else {
+                    window.location.reload()
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
     </script>
 </body>
 
