@@ -33,7 +33,7 @@
                                     "user_config" : [
                                         "abcde:simple:create_dir/delete_file/put_file"
                                     ],
-                                    "user_token_cookie_key" : "token1"
+                                    "user_token_cookie_key" : "token"
                                 }
                             ],
                             "terminal" : true

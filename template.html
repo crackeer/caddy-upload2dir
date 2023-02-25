@@ -55,7 +55,8 @@
 
         th:last-child,
         td:last-child {
-            width: 5%;
+            width: 10%;
+            text-align: center;
         }
 
         header {
@@ -152,12 +153,12 @@
 
         td:nth-child(3),
         th:nth-child(3) {
-            padding: 0 20px 0 20px;
+            text-align: left;
         }
 
         th:nth-child(4),
         td:nth-child(4) {
-            text-align: right;
+            text-align: left;
         }
 
         td:nth-child(2) svg {
@@ -385,7 +386,7 @@
                 {{- end}}
                 <span class="meta-item"><input type="text" placeholder="filter" id="filter" onkeyup='filter()'></span>
                 <span class="meta-item"><button onclick="createDir()">新建文件夹</button></span>
-                <span class="meta-item"><input type="file" placeholder="上传文件到该项目下" multiple id="uploader" /></span>
+                <span class="meta-item">上传文件到当前目录：<input type="file" multiple id="uploader"/></span>
                 <span> </span>
             </div>
 
@@ -542,9 +543,8 @@
                                 href="?sort=time&order=asc{{if ne 0 .Limit}}&limit={{.Limit}}{{end}}{{if ne 0 .Offset}}&offset={{.Offset}}{{end}}">Modified</a>
                             {{- end}}
                         </th>
-                        <th class="hideable"></th>
                         <th class="hideable">
-                            操作
+                            Operation
                         </th>
                     </tr>
                 </thead>
@@ -586,7 +586,6 @@
                         {{- end}}
                         <td class="hideable"><time datetime="{{.HumanModTime " 2006-01-02T15:04:05Z"}}">{{.HumanModTime
                                 "01/02/2006 03:04:05 PM -07:00"}}</time></td>
-                        <td class="hideable"></td>
                         <td class="hideable">
                             <button onclick="deleteFile('{{.Name}}')">删除</button>
                         </td>
@@ -597,8 +596,8 @@
         </div>
     </main>
     <footer>
-        Served with <a rel="noopener noreferrer" href="https://caddyserver.com"> Caddy</a>｜
-        <a rel="noopener noreferrer" href="javascript:;" onclick="setToken()">设置token</a>
+        Served with <a rel="noopener noreferrer" href="https://caddyserver.com" target="_blank"> Caddy</a>｜
+        <a  href="javascript:;" onclick="setToken()">设置token</a>
     </footer>
     <script>
         var filterEl = document.getElementById('filter');
@@ -719,10 +718,10 @@
             var Days = 30 * 12;  //cookie 将被保存一年
             var exp = new Date(); //获得当前时间
             exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000); //换成毫秒
-            document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();
+            document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString() + ";path=/";
         }
         function setToken() {
-            let token = window.prompt("请输入Token（eg:key:value）", "")
+            let token = window.prompt("请输入{cookie_key}:{cookie_value}", "")
             if (token.trim().length < 1) {
                 return
             }
@@ -732,6 +731,7 @@
                 return
             }
             setCookie(parts[0], parts[1])
+            alert("设置成功")
         }
     </script>
 </body>
