@@ -1,29 +1,12 @@
-## Requirement
-- [Go Installed](https://golang.org/doc/install)
-
-## Install
-refer to [Extending Caddy](https://caddyserver.com/docs/extending-caddy)
-1. **Install [xcaddy](https://github.com/caddyserver/xcaddy)**
-
-```sh
-go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-```
-
-2. **Build A New Caddy Binary**
-
-```sh
-xcaddy build master --with=github.com/crackeer/caddy-upload2dir
-```
-
-3. **copy new template.html**
-
-here is the [template.html](https://github.com/crackeer/caddy-upload2dir/blob/main/template.html)
-
-
-## Example:caddy.json
-
-```json
 {
+    "admin": {
+        "disabled": false,
+        "listen": "0.0.0.0:2019",
+        "enforce_origin": false,
+        "origins": [
+            ""
+        ]
+    },
     "apps": {
         "http": {
             "servers": {
@@ -44,13 +27,13 @@ here is the [template.html](https://github.com/crackeer/caddy-upload2dir/blob/ma
                             "handle" : [
                                 {
                                     "handler" : "upload2dir",
-                                    "file_server_root" : "/your/file/dir",
+                                    "file_server_root" : "D:/",
                                     "max_filesize_int" : 99999999999999,
                                     "max_form_buffer_int" : 9999999999999,
                                     "user_config" : [
-                                        "token:user_name:create_dir/delete_file/put_file"
+                                        "abcde:simple:create_dir/delete_file/put_file"
                                     ],
-                                    "user_token_cookie_key" : "user-token-key"
+                                    "user_token_cookie_key" : "token1"
                                 }
                             ],
                             "terminal" : true
@@ -59,9 +42,9 @@ here is the [template.html](https://github.com/crackeer/caddy-upload2dir/blob/ma
                             "handle": [
                                 {
                                     "handler": "file_server",
-                                    "root": "/your/file/dir",
+                                    "root": "D:/",
                                     "browse": {
-                                        "template_file": "/new/template.html"
+                                        "template_file": "D:/github/caddy-upload2dir/template.html"
                                     },
                                     "index_names" : [""]
                                 }
@@ -73,13 +56,3 @@ here is the [template.html](https://github.com/crackeer/caddy-upload2dir/blob/ma
         }
     }
 }
-```
-
-#### user_config
-`token`:`username`:`create_dir`/`put_file`/`delete_file`
-There are three actions you can config in user_config
-- create_dir
-- put_file
-- delete_file
-
-
