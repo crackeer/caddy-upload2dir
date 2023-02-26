@@ -19,24 +19,26 @@
                     "read_header_timeout": 10000000000,
                     "routes": [
                         {
-                            "match" : [
+                            "match": [
                                 {
-                                    "method" : ["POST", "PUT", "DELETE"]
+                                    "method": [
+                                        "POST",
+                                        "PUT",
+                                        "DELETE"
+                                    ]
                                 }
                             ],
-                            "handle" : [
+                            "handle": [
                                 {
-                                    "handler" : "upload2dir",
-                                    "file_server_root" : "/Users/liuhu016",
-                                    "max_filesize_int" : 99999999999999,
-                                    "max_form_buffer_int" : 9999999999999,
-                                    "user_config" : [
+                                    "handler": "upload2dir",
+                                    "file_server_root": "/Users/liuhu016",
+                                    "user_config": [
                                         "abcde:simple:create_dir/delete_file/put_file"
                                     ],
-                                    "user_token_cookie_key" : "token"
+                                    "user_token_cookie_key": "token"
                                 }
                             ],
-                            "terminal" : true
+                            "terminal": true
                         },
                         {
                             "handle": [
@@ -46,7 +48,9 @@
                                     "browse": {
                                         "template_file": "/Users/liuhu016/github/caddy-upload2dir/template.html"
                                     },
-                                    "index_names" : [""]
+                                    "index_names": [
+                                        ""
+                                    ]
                                 }
                             ]
                         }

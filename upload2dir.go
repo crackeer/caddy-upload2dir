@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
-	"github.com/dustin/go-humanize"
 	"go.uber.org/zap"
 )
 
@@ -42,10 +40,6 @@ type Upload2dir struct {
 	UserConfig         []string `json:"user_config"`
 	DestField          string   `json:"dest_field,omitempty"`
 	FileFieldName      string   `json:"file_field_name,omitempty"`
-	MaxFilesize        int64    `json:"max_filesize_int,omitempty"`
-	MaxFilesizeH       string   `json:"max_filesize,omitempty"`
-	MaxFormBuffer      int64    `json:"max_form_buffer_int,omitempty"`
-	MaxFormBufferH     string   `json:"max_form_buffer,omitempty"`
 
 	ctx    caddy.Context
 	logger *zap.Logger
@@ -64,8 +58,6 @@ func (Upload2dir) CaddyModule() caddy.ModuleInfo {
 func (u *Upload2dir) Provision(ctx caddy.Context) error {
 	u.ctx = ctx
 	u.logger = ctx.Logger(u)
-
-	repl := caddy.NewReplacer()
 
 	if u.FileFieldName == "" {
 		u.logger.Warn("Provision",
@@ -90,69 +82,9 @@ func (u *Upload2dir) Provision(ctx caddy.Context) error {
 		u.users = map[string]*User{}
 	}
 
-	if u.MaxFilesize == 0 && u.MaxFilesizeH != "" {
-
-		MaxFilesizeH := repl.ReplaceAll(u.MaxFilesizeH, "1GB")
-		u.MaxFilesizeH = MaxFilesizeH
-
-		size, err := humanize.ParseBytes(u.MaxFilesizeH)
-		if err != nil {
-			u.logger.Error("Provision ReplaceAll",
-				zap.String("msg", "MaxFilesizeH: Error parsing max_filesize"),
-				zap.String("MaxFilesizeH", u.MaxFilesizeH),
-				zap.Error(err))
-			return err
-		}
-		u.MaxFilesize = int64(size)
-	} else {
-		if u.MaxFilesize == 0 {
-			size, err := humanize.ParseBytes("1GB")
-			if err != nil {
-				u.logger.Error("Provision int",
-					zap.String("msg", "MaxFilesize: Error parsing max_filesize_int"),
-					zap.Int64("MaxFilesize", u.MaxFilesize),
-					zap.Error(err))
-				return err
-			}
-			u.MaxFilesize = int64(size)
-		}
-	}
-
-	if u.MaxFormBuffer == 0 && u.MaxFormBufferH != "" {
-
-		MaxFormBufferH := repl.ReplaceAll(u.MaxFormBufferH, "1GB")
-		u.MaxFormBufferH = MaxFormBufferH
-
-		size, err := humanize.ParseBytes(u.MaxFormBufferH)
-		if err != nil {
-			u.logger.Error("Provision ReplaceAll",
-				zap.String("msg", "MaxFormBufferH: Error parsing max_form_buffer"),
-				zap.String("MaxFormBufferH", u.MaxFormBufferH),
-				zap.Error(err))
-			return err
-		}
-		u.MaxFormBuffer = int64(size)
-	} else {
-		if u.MaxFormBuffer == 0 {
-			size, err := humanize.ParseBytes("1GB")
-			if err != nil {
-				u.logger.Error("Provision int",
-					zap.String("msg", "MaxFormBufferH: Error parsing max_form_buffer_int"),
-					zap.Int64("MaxFormBuffer", u.MaxFormBuffer),
-					zap.Error(err))
-				return err
-			}
-			u.MaxFormBuffer = int64(size)
-		}
-	}
-
 	u.logger.Info("Current Config",
 		zap.String("Version", Version),
 		zap.String("dest_field", u.DestField),
-		zap.Int64("max_filesize_int", u.MaxFilesize),
-		zap.String("max_filesize", u.MaxFilesizeH),
-		zap.Int64("max_form_buffer_int", u.MaxFormBuffer),
-		zap.String("max_form_buffer", u.MaxFormBufferH),
 	)
 
 	return nil
@@ -320,8 +252,6 @@ func (u *Upload2dir) PutFile(w http.ResponseWriter, r *http.Request, next caddyh
 			zap.Object("request", caddyhttp.LoggableHTTPRequest{Request: r}))
 	}
 
-	repl.Set("http.upload.max_filesize", u.MaxFilesize)
-
 	// FormFile returns the first file for the given file field key
 	// it also returns the FileHeader so we can get the Filename,
 	// the Header and the size of the file
@@ -418,46 +348,6 @@ func (u *Upload2dir) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				if !d.Args(&u.FileFieldName) {
 					return d.ArgErr()
 				}
-			case "max_form_buffer":
-				var sizeStr string
-				if !d.AllArgs(&sizeStr) {
-					return d.ArgErr()
-				}
-				size, err := humanize.ParseBytes(sizeStr)
-				if err != nil {
-					return d.Errf("parsing max_form_buffer: %v", err)
-				}
-				u.MaxFormBuffer = int64(size)
-			case "max_form_buffer_int":
-				var sizeStr string
-				if !d.AllArgs(&sizeStr) {
-					return d.ArgErr()
-				}
-				i, err := strconv.ParseInt(sizeStr, 10, 64)
-				if err != nil {
-					return d.Errf("parsing max_form_buffer_int: %v", err)
-				}
-				u.MaxFormBuffer = i
-			case "max_filesize":
-				var sizeStr string
-				if !d.AllArgs(&sizeStr) {
-					return d.ArgErr()
-				}
-				size, err := humanize.ParseBytes(sizeStr)
-				if err != nil {
-					return d.Errf("parsing max_filesize: %v", err)
-				}
-				u.MaxFilesize = int64(size)
-			case "max_filesize_int":
-				var sizeStr string
-				if !d.AllArgs(&sizeStr) {
-					return d.ArgErr()
-				}
-				i, err := strconv.ParseInt(sizeStr, 10, 64)
-				if err != nil {
-					return d.Errf("parsing max_filesize_int: %v", err)
-				}
-				u.MaxFilesize = i
 			default:
 				return d.Errf("unrecognized servers option '%s'", d.Val())
 			}
