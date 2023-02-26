@@ -76,9 +76,10 @@ There are three actions you can config in user_config
 
 ## what new filer_server page looks like?
 - Add create directory in current directory、upload file to current directory、delete file or empty directory
-![](images/2023-02-26-09-06-38.png)
+![](./images/2023-02-26-09-06-38.png)
 
-attention please,you have to set your token which represents your identity that make you have access to the three actions, you can click `set token` at the bottom of the page.
-![](images/2023-02-26-09-14-29.png)
+**attention!!!** 
+you have to set your token which represents your identity that make you have access to the three actions, you can click `set token` at the bottom of the page.
+![](./images/2023-02-26-09-14-29.png)
 
 
