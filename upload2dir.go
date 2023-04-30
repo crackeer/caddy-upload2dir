@@ -1,13 +1,11 @@
 package upload2dir
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/caddyserver/caddy/v2"
@@ -35,11 +33,8 @@ func init() {
 // Middleware implements an HTTP handler that writes the
 // uploaded file  to a file on the disk.
 type Upload2dir struct {
-	FileServerRoot     string   `json:"file_server_root"`
-	UserTokenCookieKey string   `json:"user_token_cookie_key"`
-	UserConfig         []string `json:"user_config"`
-	DestField          string   `json:"dest_field,omitempty"`
-	FileFieldName      string   `json:"file_field_name,omitempty"`
+	FileServerRoot string `json:"file_server_root"`
+	FileFieldName  string `json:"file_field_name,omitempty"`
 
 	ctx    caddy.Context
 	logger *zap.Logger
@@ -61,103 +56,18 @@ func (u *Upload2dir) Provision(ctx caddy.Context) error {
 
 	if u.FileFieldName == "" {
 		u.logger.Warn("Provision",
-			zap.String("msg", "no FileFieldName specified (file_field_name), using the default one 'myFile'"),
+			zap.String("msg", "no FileFieldName specified (file_field_name), using the default one 'file'"),
 		)
 		u.FileFieldName = "file"
 	}
 
-	if u.UserTokenCookieKey == "" {
-		u.logger.Warn("Provision",
-			zap.String("msg", "no FileFieldName specified (file_field_name), using the default one 'myFile'"),
-		)
-		u.UserTokenCookieKey = "upload2dir-token"
-	}
-
-	if len(u.UserConfig) > 0 {
-		u.logger.Error("Provision ReplaceAll",
-			zap.String("msg", "user_config and"),
-		)
-		u.users = parseUserConfig(u.UserConfig)
-	} else {
-		u.users = map[string]*User{}
-	}
-
-	u.logger.Info("Current Config",
-		zap.String("Version", Version),
-		zap.String("dest_field", u.DestField),
-	)
-
 	return nil
-}
-
-// parseUserFile
-//  @param filePath
-//  @return map[string]User
-//  @return error
-
-// parseUserConfig token-aaabbcbad:username:delete_file/put_file/create_dir
-
-// @param lines
-// @return map[string]User
-// @return error
-func parseUserConfig(lines []string) map[string]*User {
-	retData := map[string]*User{}
-	for _, item := range lines {
-		parts := strings.Split(item, ":")
-		if len(parts) < 3 {
-			continue
-		}
-		user := &User{
-			Name:   parts[1],
-			Action: map[string]int{},
-		}
-		for _, act := range strings.Split(parts[2], "/") {
-			user.Action[strings.TrimSpace(act)] = 1
-		}
-		retData[parts[0]] = user
-
-	}
-	return retData
 }
 
 // Validate implements caddy.Validator.
 func (u *Upload2dir) Validate() error {
 	// TODO: Do I need this func
 	return nil
-}
-
-// validUserAction
-//
-//	@receiver u
-//	@param action
-//	@return error
-func (u Upload2dir) validUserAction(r *http.Request, action string) (*User, error) {
-	accessDeny := errors.New("access deny")
-	tokenCookie, err := r.Cookie(u.UserTokenCookieKey)
-
-	if err != nil {
-		u.logger.Error("GetUserTokenError", zap.String("error", err.Error()))
-		return nil, accessDeny
-	}
-	u.logger.Info("GetUserToken", zap.String("token", tokenCookie.Value))
-	token := tokenCookie.Value
-	if len(token) < 1 {
-		return nil, accessDeny
-	}
-
-	user, exist := u.users[strings.TrimSpace(token)]
-	if !exist {
-		return nil, accessDeny
-	}
-	u.logger.Info("GetUser", zap.String("User", user.Name))
-
-	if _, ok := user.Action[action]; !ok {
-		return user, accessDeny
-	}
-
-	return &User{
-		Name: user.Name,
-	}, nil
 }
 
 // ServeHTTP implements caddyhttp.MiddlewareHandler.
@@ -186,17 +96,7 @@ func (u Upload2dir) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 //	@param next
 //	@return error
 func (u *Upload2dir) CreateDir(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	dest := r.FormValue(u.DestField)
-	if len(dest) < 1 {
-		dest = filepath.Join(u.FileServerRoot, r.URL.Path)
-	}
-
-	if user, err := u.validUserAction(r, "create_dir"); err != nil {
-		return caddyhttp.Error(http.StatusForbidden, err)
-	} else {
-		u.logger.Info("action create_dir",
-			zap.String("dest", dest), zap.String("user", user.Name))
-	}
+	dest := filepath.Join(u.FileServerRoot, r.URL.Path)
 
 	if dir, err := os.Stat(dest); err == nil && dir.IsDir() {
 		return caddyhttp.Error(http.StatusInternalServerError, fmt.Errorf("dir %s exists", dest))
@@ -211,19 +111,7 @@ func (u *Upload2dir) CreateDir(w http.ResponseWriter, r *http.Request, next cadd
 }
 
 func (u *Upload2dir) DeleteFile(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	dest := r.FormValue(u.DestField)
-	if len(dest) < 1 {
-		dest = filepath.Join(u.FileServerRoot, r.URL.Path)
-	}
-
-	if user, err := u.validUserAction(r, "delete_file"); err != nil {
-		u.logger.Error("action delete_file",
-			zap.String("file", dest), zap.String("error", err.Error()))
-		return caddyhttp.Error(http.StatusForbidden, err)
-	} else {
-		u.logger.Info("action delete_file",
-			zap.String("file", dest), zap.String("user", user.Name))
-	}
+	dest := filepath.Join(u.FileServerRoot, r.URL.Path)
 
 	err := os.Remove(dest)
 	if err != nil {
@@ -256,16 +144,7 @@ func (u *Upload2dir) PutFile(w http.ResponseWriter, r *http.Request, next caddyh
 	// it also returns the FileHeader so we can get the Filename,
 	// the Header and the size of the file
 	file, handler, ff_err := r.FormFile(u.FileFieldName)
-	dest := r.FormValue(u.DestField)
-	if len(dest) < 1 {
-		dest = filepath.Join(u.FileServerRoot, r.URL.Path)
-	}
-	if user, err := u.validUserAction(r, "put_file"); err != nil {
-		return caddyhttp.Error(http.StatusForbidden, err)
-	} else {
-		u.logger.Info("action delete_file",
-			zap.String("file", dest), zap.String("user", user.Name))
-	}
+	dest := filepath.Join(u.FileServerRoot, r.URL.Path)
 
 	if ff_err != nil {
 		u.logger.Error("FormFile Error",
@@ -339,11 +218,6 @@ func (u *Upload2dir) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	for d.Next() {
 		for d.NextBlock(0) {
 			switch d.Val() {
-
-			case "dest_field":
-				if !d.Args(&u.DestField) {
-					return d.ArgErr()
-				}
 			case "file_field_name":
 				if !d.Args(&u.FileFieldName) {
 					return d.ArgErr()
