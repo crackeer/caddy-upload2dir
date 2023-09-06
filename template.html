@@ -596,7 +596,7 @@
     </main>
     <footer>
         Served with <a rel="noopener noreferrer" href="https://caddyserver.com" target="_blank"> Caddy</a>｜
-        <a  href="javascript:;" onclick="setToken()">set token</a>
+        <a  rel="noopener noreferrer" href="https://github.com/crackeer/caddy-upload2dir" target="_blank">With Plugin caddy-upload2dir</a>
     </footer>
     <script>
         var filterEl = document.getElementById('filter');
@@ -712,25 +712,6 @@
             } catch (e) {
                 alert(e.message)
             }
-        }
-        function setCookie(name, value) {
-            var Days = 30 * 12;  //cookie 将被保存一年
-            var exp = new Date(); //获得当前时间
-            exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000); //换成毫秒
-            document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString() + ";path=/";
-        }
-        function setToken() {
-            let token = window.prompt("请输入{cookie_key}:{cookie_value}", "")
-            if (token.trim().length < 1) {
-                return
-            }
-            let parts = token.split(":")
-            if (parts.length < 2) {
-                alert("请输入正确token")
-                return
-            }
-            setCookie(parts[0], parts[1])
-            alert("设置成功")
         }
     </script>
 </body>
