@@ -12,7 +12,7 @@ go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
 2. **Build A New Caddy Binary**
 
 ```sh
-xcaddy build master --with=github.com/crackeer/caddy-upload2dir
+xcaddy build master --with github.com/crackeer/caddy-upload2dir
 ```
 
 3. **copy new template.html**
@@ -41,11 +41,7 @@ apps.http.servers下的一个配置
                 "handle" : [
                     {
                         "handler" : "upload2dir",
-                        "file_server_root" : "/your/file/dir",
-                        "user_config" : [
-                            "token:user_name:create_dir/delete_file/put_file"
-                        ],
-                        "user_token_cookie_key" : "token"
+                        "file_server_root" : "/your/file/dir"
                     }
                 ],
                 "terminal" : true
@@ -67,12 +63,6 @@ apps.http.servers下的一个配置
 }
 ```
 
-#### about user_config
-`token`:`username`:`create_dir`/`put_file`/`delete_file`
-There are three actions you can config in user_config
-- create_dir
-- put_file
-- delete_file
 
 ## what new filer_server page looks like?
 - Add create directory in current directory、upload file to current directory、delete file or empty directory
