@@ -35,7 +35,6 @@ func init() {
 // uploaded file  to a file on the disk.
 type Upload2dir struct {
 	FileServerRoot string `json:"file_server_root"`
-	DestField      string `json:"dest_field,omitempty"`
 	FileFieldName  string `json:"file_field_name,omitempty"`
 
 	ctx    caddy.Context
@@ -57,15 +56,10 @@ func (u *Upload2dir) Provision(ctx caddy.Context) error {
 
 	if u.FileFieldName == "" {
 		u.logger.Warn("Provision",
-			zap.String("msg", "no FileFieldName specified (file_field_name), using the default one 'myFile'"),
+			zap.String("msg", "no FileFieldName specified (file_field_name), using the default one 'file'"),
 		)
 		u.FileFieldName = "file"
 	}
-
-	u.logger.Info("Current Config",
-		zap.String("Version", Version),
-		zap.String("dest_field", u.DestField),
-	)
 
 	return nil
 }
@@ -102,10 +96,7 @@ func (u Upload2dir) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 //	@param next
 //	@return error
 func (u *Upload2dir) CreateDir(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	dest := r.FormValue(u.DestField)
-	if len(dest) < 1 {
-		dest = filepath.Join(u.FileServerRoot, r.URL.Path)
-	}
+	dest := filepath.Join(u.FileServerRoot, r.URL.Path)
 
 	if dir, err := os.Stat(dest); err == nil && dir.IsDir() {
 		return caddyhttp.Error(http.StatusInternalServerError, fmt.Errorf("dir %s exists", dest))
@@ -120,10 +111,7 @@ func (u *Upload2dir) CreateDir(w http.ResponseWriter, r *http.Request, next cadd
 }
 
 func (u *Upload2dir) DeleteFile(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	dest := r.FormValue(u.DestField)
-	if len(dest) < 1 {
-		dest = filepath.Join(u.FileServerRoot, r.URL.Path)
-	}
+	dest := filepath.Join(u.FileServerRoot, r.URL.Path)
 
 	err := os.Remove(dest)
 	if err != nil {
@@ -156,10 +144,7 @@ func (u *Upload2dir) PutFile(w http.ResponseWriter, r *http.Request, next caddyh
 	// it also returns the FileHeader so we can get the Filename,
 	// the Header and the size of the file
 	file, handler, ff_err := r.FormFile(u.FileFieldName)
-	dest := r.FormValue(u.DestField)
-	if len(dest) < 1 {
-		dest = filepath.Join(u.FileServerRoot, r.URL.Path)
-	}
+	dest := filepath.Join(u.FileServerRoot, r.URL.Path)
 
 	if ff_err != nil {
 		u.logger.Error("FormFile Error",
@@ -233,11 +218,6 @@ func (u *Upload2dir) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	for d.Next() {
 		for d.NextBlock(0) {
 			switch d.Val() {
-
-			case "dest_field":
-				if !d.Args(&u.DestField) {
-					return d.ArgErr()
-				}
 			case "file_field_name":
 				if !d.Args(&u.FileFieldName) {
 					return d.ArgErr()
